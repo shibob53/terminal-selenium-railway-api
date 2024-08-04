@@ -6,14 +6,14 @@ WORKDIR /app
 
 # Install Python and necessary packages in a single RUN command
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip && \
+    apt-get install -y python3 python3-pip python3-venv && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container
-COPY requirements.txt .
+# Create a virtual environment
+RUN python3 -m venv venv
 
-# Install Python packages
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Activate the virtual environment and install Python packages
+RUN . venv/bin/activate && pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . .
@@ -21,8 +21,8 @@ COPY . .
 # Set environment variable for Python unbuffered output
 ENV PYTHONUNBUFFERED=1
 
-# Set environment variable for the PATH
-ENV PATH /root/.local/bin:${PATH}
+# Ensure the virtual environment is used by setting the PATH
+ENV PATH="/app/venv/bin:$PATH"
 
 # Set the command to run the application
 CMD ["python3", "main.py"]
