@@ -1,17 +1,28 @@
-ARG PORT=443
+# Use the latest version of cypress/browsers image
 FROM cypress/browsers:latest
+
+# Set the working directory
 WORKDIR /app
 
-RUN apt-get install python3 -y
+# Install Python and necessary packages in a single RUN command
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN echo $(python3 -m site --user-base)
+# Copy the requirements file into the container
+COPY requirements.txt .
 
-COPY requirements.txt  .
+# Install Python packages
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENV PATH /home/root/.local/bin:${PATH}
-
-RUN  apt-get update && apt-get install -y python3-pip && pip install -r requirements.txt
-
+# Copy the rest of the application code into the container
 COPY . .
 
-CMD python3 main.py
+# Set environment variable for Python unbuffered output
+ENV PYTHONUNBUFFERED=1
+
+# Set environment variable for the PATH
+ENV PATH /root/.local/bin:${PATH}
+
+# Set the command to run the application
+CMD ["python3", "main.py"]
